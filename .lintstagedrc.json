@@ -1,0 +1,9 @@
+{
+  "frontend/**/*.{js,jsx,ts,tsx}": [
+    "cd frontend && npx eslint --fix",
+    "cd frontend && npx prettier --write"
+  ],
+  "backend/**/*.py": [
+    "cd backend && flake8"
+  ]
+} 
