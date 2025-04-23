@@ -345,3 +345,9 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/node,python,macos
 
+### Misc ###
+prompt_plan.md
+spec.md
+todo.md
+Datasience_FullStack_Take_Home_Assignemnt.pdf
+
