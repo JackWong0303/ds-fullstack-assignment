@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { MessageSquare, Settings } from 'lucide-react';
+import { MessageSquare, Settings, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,6 +12,7 @@ import MessageImage from './message-image';
 import MessageFile from './message-file';
 import SystemBubble from './system-bubble';
 import useAutoScroll from '@/hooks/use-auto-scroll';
+import useChat from '@/hooks/use-chat';
 
 type MessageType = 'text' | 'image' | 'file' | 'system';
 
@@ -67,16 +68,42 @@ export default function ChatLayout() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useAutoScroll(messagesEndRef, messages);
+  const { sendChatRequest, loading, error } = useChat();
 
-  const handleSendMessage = (content: string) => {
-    const newMessage: Message = {
+  const handleSendMessage = async (content: string) => {
+    const userMessage: Message = {
       id: Date.now().toString(),
       type: 'text',
       sender: 'You',
       content,
       timestamp: new Date(),
     };
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      const chatResponse = await sendChatRequest({
+        type: 'text',
+        message: content,
+      });
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'text',
+        sender: 'Bot',
+        content: chatResponse.response,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (err) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'system',
+        sender: 'System',
+        content: 'Failed to send message. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleFileUpload = (file: File) => {
@@ -151,7 +178,12 @@ export default function ChatLayout() {
         </ScrollArea>
       </CardContent>
       <Separator />
-      <CardFooter className="p-4">
+      <CardFooter className="p-4 relative">
+        {loading && (
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" role="status" data-testid="loading-spinner" />
+          </div>
+        )}
         <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} />
       </CardFooter>
     </Card>
