@@ -11,6 +11,8 @@ export interface ChatRequest {
     name?: string;
     type?: string;
     size?: number;
+    width?: number;
+    height?: number;
   };
 }
 

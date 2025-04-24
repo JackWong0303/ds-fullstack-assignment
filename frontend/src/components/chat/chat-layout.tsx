@@ -153,6 +153,20 @@ export default function ChatLayout() {
     }
 
     const isImage = file.type.startsWith('image/');
+    let imageWidth = 400;
+    let imageHeight = 300;
+
+    if (isImage) {
+      const objectUrl = URL.createObjectURL(file);
+
+      try {
+        const dimensions = await getImageDimensions(objectUrl);
+        imageWidth = dimensions.width;
+        imageHeight = dimensions.height;
+      } catch (err) {
+        console.error('Error getting image dimensions:', err);
+      }
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -163,8 +177,8 @@ export default function ChatLayout() {
       ...(isImage
         ? {
             imageUrl: URL.createObjectURL(file),
-            imageWidth: 400,
-            imageHeight: 300,
+            imageWidth,
+            imageHeight,
             imageAlt: file.name,
           }
         : {
@@ -178,11 +192,13 @@ export default function ChatLayout() {
 
     try {
       const chatResponse = await sendChatRequest({
-        type: 'file',
+        type: isImage ? 'image' : 'file',
         fileInfo: {
           name: file.name,
           type: file.type,
           size: file.size,
+          width: isImage ? imageWidth : undefined,
+          height: isImage ? imageHeight : undefined,
         },
       });
 
@@ -204,6 +220,33 @@ export default function ChatLayout() {
       };
       setMessages(prev => [...prev, errorMessage]);
     }
+  };
+
+  const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 600;
+
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+          width = Math.floor(width * ratio);
+          height = Math.floor(height * ratio);
+        }
+
+        resolve({ width, height });
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
   };
 
   const handleReset = () => {
