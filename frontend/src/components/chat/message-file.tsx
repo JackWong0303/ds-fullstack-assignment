@@ -1,5 +1,9 @@
-import {FileIcon, Download} from 'lucide-react';
-import {formatDistanceToNow} from 'date-fns';
+import { FileIcon, Download } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface MessageFileProps {
   message: {
@@ -12,8 +16,14 @@ interface MessageFileProps {
   };
 }
 
-export default function MessageFile({message}: MessageFileProps) {
+export default function MessageFile({ message }: MessageFileProps) {
   const isCurrentUser = message.sender === 'You';
+  const initials = message.sender
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase();
+
   const formattedSize = message.fileSize
     ? message.fileSize < 1000000
       ? `${(message.fileSize / 1024).toFixed(1)} KB`
@@ -21,37 +31,41 @@ export default function MessageFile({message}: MessageFileProps) {
     : 'Unknown size';
 
   return (
-    <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[80%] ${isCurrentUser ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg px-4 py-2`}
-      >
-        <div className="flex items-center space-x-2">
-          <span className="font-semibold">{message.sender}</span>
-          <span className="text-xs opacity-70">
-            {formatDistanceToNow(message.timestamp, {addSuffix: true})}
+    <div className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}>
+      <Avatar className="mt-0.5">
+        <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${initials}`} alt={message.sender} />
+        <AvatarFallback>{initials}</AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col gap-1 max-w-[80%]">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{message.sender}</span>
+          <span className="text-xs text-muted-foreground">
+            {formatDistanceToNow(message.timestamp, { addSuffix: true })}
           </span>
         </div>
-        <p className="mt-1 mb-2">{message.content}</p>
-        <div
-          className={`flex items-center p-3 rounded-lg ${isCurrentUser ? 'bg-indigo-700' : 'bg-gray-300'}`}
-        >
-          <FileIcon
-            className={`h-8 w-8 ${isCurrentUser ? 'text-white' : 'text-gray-700'} mr-3`}
-          />
-          <div className="flex-1">
-            <p className="font-medium truncate">{message.fileName}</p>
-            <p className="text-sm opacity-80">
-              {formattedSize} • {message.fileType}
-            </p>
-          </div>
-          <button
-            className={`p-2 rounded-full ${isCurrentUser ? 'hover:bg-indigo-800' : 'hover:bg-gray-400'} transition-colors`}
-          >
-            <Download
-              className={`h-5 w-5 ${isCurrentUser ? 'text-white' : 'text-gray-700'}`}
-            />
-          </button>
-        </div>
+        <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+          <CardContent className="p-3">
+            <p className="text-sm mb-2">{message.content}</p>
+            <div
+              className={cn(
+                'flex items-center p-3 rounded-md gap-2',
+                isCurrentUser ? 'bg-primary-foreground/10' : 'bg-background',
+              )}
+            >
+              <FileIcon className="h-8 w-8 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{message.fileName}</p>
+                <p className="text-xs opacity-80">
+                  {formattedSize} • {message.fileType}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Download className="h-4 w-4" />
+                <span className="sr-only">Download</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

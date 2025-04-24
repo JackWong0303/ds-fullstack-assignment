@@ -1,7 +1,11 @@
 'use client';
 
-import {useRef, useState} from 'react';
-import {MessageSquare, Settings} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { MessageSquare, Settings } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import ChatInput from './chat-input';
 import MessageText from './message-text';
 import MessageImage from './message-image';
@@ -31,19 +35,29 @@ export default function ChatLayout() {
     {
       id: '1',
       type: 'text',
-      sender: 'You',
-      content: 'Hello, how are you?',
-      timestamp: new Date(Date.now() - 3500000),
+      sender: 'Bot',
+      content: 'Hello, how can I help you today?',
+      timestamp: new Date(Date.now() - 3600000),
     },
     {
       id: '2',
       type: 'text',
-      sender: 'Bot',
-      content: 'I am good, thank you!',
-      timestamp: new Date(Date.now() - 3600000),
+      sender: 'You',
+      content: 'I need help with my website',
+      timestamp: new Date(Date.now() - 3500000),
     },
     {
       id: '3',
+      type: 'file',
+      sender: 'You',
+      content: 'Here is the document',
+      fileName: 'project_brief.pdf',
+      fileType: 'application/pdf',
+      fileSize: 2500000,
+      timestamp: new Date(Date.now() - 3300000),
+    },
+    {
+      id: '4',
       type: 'system',
       sender: 'System',
       content: 'Chat history has been reset',
@@ -103,44 +117,43 @@ export default function ChatLayout() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-2">
-          <MessageSquare className="h-6 w-6 text-indigo-600" />
-          <h1 className="text-xl font-semibold">Chat</h1>
-        </div>
-        <button
-          onClick={handleReset}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-        >
-          <Settings className="h-5 w-5 text-gray-600" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(message => {
-          switch (message.type) {
-            case 'text':
-              return <MessageText key={message.id} message={message} />;
-            case 'image':
-              return <MessageImage key={message.id} message={message} />;
-            case 'file':
-              return <MessageFile key={message.id} message={message} />;
-            case 'system':
-              return <SystemBubble key={message.id} message={message} />;
-            default:
-              return null;
-          }
-        })}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="border-t p-4">
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          onFileUpload={handleFileUpload}
-        />
-      </div>
-    </div>
+    <Card className="flex flex-col h-full max-w-4xl mx-auto shadow-lg rounded-lg overflow-hidden">
+      <CardHeader className="px-4 py-3 flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-xl flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          Chat
+        </CardTitle>
+        <Button variant="ghost" size="icon" onClick={handleReset}>
+          <Settings className="h-5 w-5" />
+          <span className="sr-only">Settings</span>
+        </Button>
+      </CardHeader>
+      <Separator />
+      <CardContent className="flex-1 p-0">
+        <ScrollArea className="h-[calc(100vh-180px)]">
+          <div className="flex flex-col gap-4 p-4">
+            {messages.map(message => {
+              switch (message.type) {
+                case 'text':
+                  return <MessageText key={message.id} message={message} />;
+                case 'image':
+                  return <MessageImage key={message.id} message={message} />;
+                case 'file':
+                  return <MessageFile key={message.id} message={message} />;
+                case 'system':
+                  return <SystemBubble key={message.id} message={message} />;
+                default:
+                  return null;
+              }
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </CardContent>
+      <Separator />
+      <CardFooter className="p-4">
+        <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} />
+      </CardFooter>
+    </Card>
   );
 }

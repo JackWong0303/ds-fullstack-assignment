@@ -1,30 +1,20 @@
 'use client';
 
-import {useEffect, type RefObject} from 'react';
+import { useEffect, type RefObject } from 'react';
 
-export default function useAutoScroll<T>(
-  ref: RefObject<HTMLElement>,
-  dependency: T[],
-  threshold = 100,
-) {
+export default function useAutoScroll<T>(ref: RefObject<HTMLElement>, dependency: T[], threshold = 100) {
   useEffect(() => {
     const scrollToBottom = () => {
-      if (ref.current) {
-        const {scrollHeight, scrollTop, clientHeight} = ref.current
-          .parentElement || {
-          scrollHeight: 0,
-          scrollTop: 0,
-          clientHeight: 0,
-        };
-        const isNearBottom =
-          scrollHeight - scrollTop - clientHeight <= threshold;
+      // Find the closest ScrollArea viewport
+      const scrollArea = ref.current?.closest('[data-radix-scroll-area-viewport]');
+
+      if (scrollArea) {
+        const { scrollHeight, scrollTop, clientHeight } = scrollArea;
+        const isNearBottom = scrollHeight - scrollTop - clientHeight <= threshold;
 
         if (isNearBottom) {
           setTimeout(() => {
-            if (ref.current?.parentElement) {
-              ref.current.parentElement.scrollTop =
-                ref.current.parentElement.scrollHeight;
-            }
+            scrollArea.scrollTop = scrollArea.scrollHeight;
           }, 100);
         }
       }
