@@ -7,6 +7,27 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
+// Define allowed file types to match with the chat-layout component
+const ALLOWED_FILE_TYPES = [
+  // Images
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  // Documents
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+  // Data files
+  'text/csv',
+  'application/json',
+  'application/xml',
+  'text/xml',
+];
+
+const DEFAULT_MAX_SIZE_MB = 5;
+
 interface FileUploadProps {
   onFileUpload: (file: File) => void;
   onUploadStateChange?: (isUploading: boolean) => void;
@@ -21,16 +42,8 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       onFileUpload,
       onUploadStateChange,
       children,
-      maxSizeMB = 10,
-      acceptedFileTypes = [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-      ],
+      maxSizeMB = DEFAULT_MAX_SIZE_MB,
+      acceptedFileTypes = ALLOWED_FILE_TYPES,
     },
     ref,
   ) => {
@@ -111,6 +124,11 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       }
     };
 
+    // Show a more user-friendly list of accepted file types
+    const getFileTypesDisplay = () => {
+      return 'Images, PDFs, Word documents, text files, and data files';
+    };
+
     if (children) {
       return (
         <div ref={dropZoneRef} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
@@ -148,6 +166,9 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               <AlertDescription className="text-xs text-muted-foreground mt-1">
                 Max size: {maxSizeMB}MB
               </AlertDescription>
+              <AlertDescription className="text-xs text-muted-foreground mt-1">
+                Accepted types: {getFileTypesDisplay()}
+              </AlertDescription>
             </label>
 
             {error && (
@@ -176,5 +197,7 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
     );
   },
 );
+
+FileUpload.displayName = 'FileUpload';
 
 export default FileUpload;

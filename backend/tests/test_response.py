@@ -33,3 +33,32 @@ class TestResponseService:
     def test_generate_response_invalid_input_not_dict(self):
         result = self.service.generate_response("hi")
         assert result == {"response": "Invalid input format"}
+
+    def test_generate_response_file_upload(self):
+        """Test handling of file upload payload."""
+        payload = {
+            "type": "file",
+            "fileInfo": {
+                "name": "test_document.pdf",
+                "size": 1024,
+                "type": "application/pdf",
+            },
+        }
+        result = self.service.generate_response(payload)
+        assert result == {
+            "response": "Thanks for uploading test_document.pdf (size 1024 bytes)"
+        }
+
+    def test_generate_response_file_upload_missing_info(self):
+        """Test handling of file upload with missing information."""
+        # Missing file name
+        payload = {"type": "file", "fileInfo": {"size": 2048}}
+        result = self.service.generate_response(payload)
+        assert result == {
+            "response": "Thanks for uploading unknown file (size 2048 bytes)"
+        }
+
+        # Missing file size
+        payload = {"type": "file", "fileInfo": {"name": "image.jpg"}}
+        result = self.service.generate_response(payload)
+        assert result == {"response": "Thanks for uploading image.jpg (size 0 bytes)"}

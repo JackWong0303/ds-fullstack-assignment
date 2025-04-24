@@ -33,11 +33,15 @@ async def chat(
 ):
     if request.type == "text":
         return response_service.generate_response({"message": request.message})
+    elif request.type == "file":
+        return response_service.generate_response(
+            {"type": "file", "fileInfo": request.fileInfo}
+        )
 
-    # only text is currently supported
+    # only text and file are currently supported
     msg = [
         f"Received {request.type} request,",
-        "but only text is currently supported",
+        "but only text and file are currently supported",
     ]
     return {"response": " ".join(msg)}
 

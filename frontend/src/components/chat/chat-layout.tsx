@@ -106,10 +106,55 @@ export default function ChatLayout() {
     }
   };
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
+    // Validate file size (max 5MB)
+    const MAX_SIZE_MB = 5;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: 'system',
+        sender: 'System',
+        content: `File too large. Maximum size is ${MAX_SIZE_MB}MB.`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+
+    // Validate file extension
+    const allowedExtensions = [
+      // Images
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      // Documents
+      '.pdf',
+      '.doc',
+      '.docx',
+      '.txt',
+      // Data files
+      '.csv',
+      '.json',
+      '.xml',
+    ];
+
+    const fileExtension = `.${file.name.split('.').pop()?.toLowerCase()}`;
+    if (!allowedExtensions.includes(fileExtension)) {
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: 'system',
+        sender: 'System',
+        content: `File type not allowed. Allowed types: ${allowedExtensions.join(', ')}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+
     const isImage = file.type.startsWith('image/');
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       type: isImage ? 'image' : 'file',
       sender: 'You',
@@ -129,7 +174,36 @@ export default function ChatLayout() {
           }),
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      const chatResponse = await sendChatRequest({
+        type: 'file',
+        fileInfo: {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        },
+      });
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'text',
+        sender: 'Bot',
+        content: chatResponse.response,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (err) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'system',
+        sender: 'System',
+        content: 'Failed to process file. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleReset = () => {

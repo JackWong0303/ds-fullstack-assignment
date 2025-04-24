@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ChatLayout from '../chat-layout';
 import * as useChatModule from '@/hooks/use-chat';
+import { createEvent } from '@testing-library/react';
 
 jest.mock('@/hooks/use-chat', () => ({
   __esModule: true,
@@ -89,11 +90,27 @@ describe('ChatLayout', () => {
 
     renderWithClient(<ChatLayout />);
 
-    // Check that the loading spinner is visible
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
-    // Resolve the promise to complete the test
     await act(async () => {
       resolvePromise({ response: 'hello there' });
     });
+  });
+
+  test('rejects files that exceed size limit', async () => {
+    const largeFile = new File(['test content'], 'large.pdf', { type: 'application/pdf' });
+    Object.defineProperty(largeFile, 'size', { value: 6 * 1024 * 1024 }); // 6MB
+
+    renderWithClient(<ChatLayout />);
+
+    const fileInput = screen.getByTestId('file-input-for-test');
+    await act(async () => {
+      const event = createEvent.change(fileInput, {
+        target: { files: [largeFile] },
+      });
+      fireEvent(fileInput, event);
+    });
+
+    expect(screen.getByText(/File too large. Maximum size is 5MB/i)).toBeTruthy();
+    expect(mockSendChatRequest).not.toHaveBeenCalled();
   });
 });

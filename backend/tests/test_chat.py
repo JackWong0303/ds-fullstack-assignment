@@ -19,13 +19,29 @@ def test_chat_endpoint_text_default():
     assert response.json() == {"response": "I'm a rule-based bot"}
 
 
-def test_chat_endpoint_non_text():
+def test_chat_endpoint_file():
+    """Test file upload handling in the chat endpoint."""
     response = client.post(
-        "/api/chat", json={"type": "file", "fileInfo": {"name": "test.txt"}}
+        "/api/chat",
+        json={
+            "type": "file",
+            "fileInfo": {"name": "test.txt", "size": 256, "type": "text/plain"},
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "response": "Thanks for uploading test.txt (size 256 bytes)"
+    }
+
+
+def test_chat_endpoint_image_not_supported():
+    """Test that image type is not yet supported."""
+    response = client.post(
+        "/api/chat", json={"type": "image", "fileInfo": {"name": "image.jpg"}}
     )
     expected_response = [
-        "Received file request,",
-        "but only text is currently supported",
+        "Received image request,",
+        "but only text and file are currently supported",
     ]
     assert response.status_code == 200
     assert response.json() == {"response": " ".join(expected_response)}
