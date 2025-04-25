@@ -7,12 +7,12 @@ class ResponseService:
     def __init__(self):
         self.image_processor = ImageProcessor()
 
-    def generate_response(self, payload: dict) -> dict:
+    def generate_response(self, payload) -> dict:
         """
         Generate a response based on the input payload type.
 
         Args:
-            payload (dict): Input data containing either:
+            payload: Input data, expected to be a dict containing either:
                 - {"message": "user input string"} for text
                 - {"type": "file", "fileInfo": {...}} for files
                 - {"type": "image", "fileInfo": {...}} for images
@@ -20,6 +20,9 @@ class ResponseService:
         Returns:
             dict: Response with format {"response": "bot response string"}
         """
+        # Validate input type
+        if not isinstance(payload, dict):
+            return {"response": "Invalid input format"}
 
         if payload.get("type") == "image" and "fileInfo" in payload:
             return self._handle_image(payload["fileInfo"])

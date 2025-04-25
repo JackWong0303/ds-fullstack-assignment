@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Literal, Optional, Dict, Any
 from pydantic import BaseModel
@@ -32,8 +32,30 @@ async def chat(
     response_service: ResponseService = Depends(ResponseService),
 ):
     if request.type == "text":
+        if request.message is None:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "loc": ["body", "message"],
+                        "msg": "Field required",
+                        "type": "missing",
+                    }
+                ],
+            )
         return response_service.generate_response({"message": request.message})
     elif request.type == "file":
+        if request.fileInfo is None:
+            raise HTTPException(
+                status_code=422,
+                detail=[
+                    {
+                        "loc": ["body", "fileInfo"],
+                        "msg": "Field required",
+                        "type": "missing",
+                    }
+                ],
+            )
         return response_service.generate_response(
             {"type": "file", "fileInfo": request.fileInfo}
         )

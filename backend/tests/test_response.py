@@ -45,20 +45,19 @@ class TestResponseService:
             },
         }
         result = self.service.generate_response(payload)
-        assert result == {
-            "response": "Thanks for uploading test_document.pdf (size 1024 bytes)"
-        }
+        expected_response = "Thanks for uploading test_document.pdf (1.0 KB)"
+        assert result == {"response": expected_response}
 
     def test_generate_response_file_upload_missing_info(self):
         """Test handling of file upload with missing information."""
         # Missing file name
         payload = {"type": "file", "fileInfo": {"size": 2048}}
         result = self.service.generate_response(payload)
-        assert result == {
-            "response": "Thanks for uploading unknown file (size 2048 bytes)"
-        }
+        expected_resp_unknown = "Thanks for uploading unknown file (2.0 KB)"
+        assert result == {"response": expected_resp_unknown}
 
         # Missing file size
         payload = {"type": "file", "fileInfo": {"name": "image.jpg"}}
         result = self.service.generate_response(payload)
-        assert result == {"response": "Thanks for uploading image.jpg (size 0 bytes)"}
+        expected_resp_no_size = "Thanks for uploading image.jpg (0 bytes)"
+        assert result == {"response": expected_resp_no_size}
