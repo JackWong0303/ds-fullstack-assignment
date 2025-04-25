@@ -2,6 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface MessageTextProps {
   message: {
@@ -20,7 +21,12 @@ export default function MessageText({ message }: MessageTextProps) {
     .toUpperCase();
 
   return (
-    <div className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}>
+    <motion.div
+      className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Avatar className="mt-0.5">
         <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${initials}`} alt={message.sender} />
         <AvatarFallback>{initials}</AvatarFallback>
@@ -32,10 +38,12 @@ export default function MessageText({ message }: MessageTextProps) {
             {formatDistanceToNow(message.timestamp, { addSuffix: true })}
           </span>
         </div>
-        <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-          <CardContent className="p-3 text-sm">{message.content}</CardContent>
-        </Card>
+        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} transition={{ duration: 0.2 }}>
+          <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+            <CardContent className="p-3 text-sm">{message.content}</CardContent>
+          </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

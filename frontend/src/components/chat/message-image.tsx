@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface MessageImageProps {
   message: {
@@ -25,7 +26,12 @@ export default function MessageImage({ message }: MessageImageProps) {
     .toUpperCase();
 
   return (
-    <div className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}>
+    <motion.div
+      className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Avatar className="mt-0.5">
         <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${initials}`} alt={message.sender} />
         <AvatarFallback>{initials}</AvatarFallback>
@@ -37,21 +43,23 @@ export default function MessageImage({ message }: MessageImageProps) {
             {formatDistanceToNow(message.timestamp, { addSuffix: true })}
           </span>
         </div>
-        <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-          <CardContent className="p-3">
-            <p className="text-sm mb-2">{message.content}</p>
-            <div className="rounded-md overflow-hidden">
-              <Image
-                src={message.imageUrl || '/placeholder.svg?height=300&width=400'}
-                alt={message.imageAlt || 'Image'}
-                width={message.imageWidth || 400}
-                height={message.imageHeight || 300}
-                className="object-cover w-full h-auto"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} transition={{ duration: 0.2 }}>
+          <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+            <CardContent className="p-3">
+              <p className="text-sm mb-2">{message.content}</p>
+              <div className="rounded-md overflow-hidden">
+                <Image
+                  src={message.imageUrl || '/placeholder.svg?height=300&width=400'}
+                  alt={message.imageAlt || 'Image'}
+                  width={message.imageWidth || 400}
+                  height={message.imageHeight || 300}
+                  className="object-cover w-full h-auto"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

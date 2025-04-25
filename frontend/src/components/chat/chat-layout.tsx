@@ -11,6 +11,7 @@ import MessageText from './message-text';
 import MessageImage from './message-image';
 import MessageFile from './message-file';
 import SystemBubble from './system-bubble';
+import ResetChatButton from './reset-chat-button';
 import useAutoScroll from '@/hooks/use-auto-scroll';
 import useChat from '@/hooks/use-chat';
 
@@ -38,31 +39,7 @@ export default function ChatLayout() {
       type: 'text',
       sender: 'Bot',
       content: 'Hello, how can I help you today?',
-      timestamp: new Date(Date.now() - 3600000),
-    },
-    {
-      id: '2',
-      type: 'text',
-      sender: 'You',
-      content: 'I need help with my website',
-      timestamp: new Date(Date.now() - 3500000),
-    },
-    {
-      id: '3',
-      type: 'file',
-      sender: 'You',
-      content: 'Here is the document',
-      fileName: 'project_brief.pdf',
-      fileType: 'application/pdf',
-      fileSize: 2500000,
-      timestamp: new Date(Date.now() - 3300000),
-    },
-    {
-      id: '4',
-      type: 'system',
-      sender: 'System',
-      content: 'Chat history has been reset',
-      timestamp: new Date(Date.now() - 3200000),
+      timestamp: new Date(Date.now()),
     },
   ]);
 
@@ -250,14 +227,15 @@ export default function ChatLayout() {
   };
 
   const handleReset = () => {
-    const systemMessage: Message = {
-      id: Date.now().toString(),
-      type: 'system',
-      sender: 'System',
-      content: 'Chat history has been reset',
-      timestamp: new Date(),
-    };
-    setMessages([systemMessage]);
+    setMessages([
+      {
+        id: '1',
+        type: 'text',
+        sender: 'Bot',
+        content: 'Hello, how can I help you today?',
+        timestamp: new Date(),
+      },
+    ]);
   };
 
   return (
@@ -267,10 +245,13 @@ export default function ChatLayout() {
           <MessageSquare className="h-5 w-5" />
           Chat
         </CardTitle>
-        <Button variant="ghost" size="icon" onClick={handleReset}>
-          <Settings className="h-5 w-5" />
-          <span className="sr-only">Settings</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ResetChatButton onReset={handleReset} />
+          <Button variant="ghost" size="icon">
+            <Settings className="h-5 w-5" />
+            <span className="sr-only">Settings</span>
+          </Button>
+        </div>
       </CardHeader>
       <Separator />
       <CardContent className="flex-1 p-0">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ChatLayout from '../chat-layout';
@@ -112,5 +113,41 @@ describe('ChatLayout', () => {
 
     expect(screen.getByText(/File too large. Maximum size is 5MB/i)).toBeTruthy();
     expect(mockSendChatRequest).not.toHaveBeenCalled();
+  });
+
+  test('resets chat history when reset button is clicked', async () => {
+    mockSendChatRequest.mockResolvedValueOnce({
+      response: 'hello there',
+    });
+
+    renderWithClient(<ChatLayout />);
+
+    const inputField = screen.getByPlaceholderText(/Type your message/i);
+
+    // Type a message in the input field
+    await userEvent.type(inputField, 'test message');
+
+    // Find and click the send button
+    const sendButton = screen.getByRole('button', { name: /send message/i });
+    await userEvent.click(sendButton);
+
+    // Verify the message appears in the chat
+    expect(screen.getByText('test message')).toBeTruthy();
+
+    // Wait for the bot response to appear
+    await waitFor(() => {
+      expect(screen.getByText('hello there')).toBeTruthy();
+    });
+
+    // Find and click the reset button
+    const resetButton = screen.getByTestId('reset-chat-button');
+    await userEvent.click(resetButton);
+
+    // Verify the messages are cleared and welcome message is shown
+    await waitFor(() => {
+      expect(screen.queryByText('test message')).not.toBeInTheDocument();
+      expect(screen.queryByText('hello there')).not.toBeInTheDocument();
+      expect(screen.getByText('Hello, how can I help you today?')).toBeTruthy();
+    });
   });
 });

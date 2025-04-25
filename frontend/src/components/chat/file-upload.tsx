@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Define allowed file types to match with the chat-layout component
 const ALLOWED_FILE_TYPES = [
@@ -133,12 +134,21 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       return (
         <div ref={dropZoneRef} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
           {children}
-          {error && (
-            <Alert variant="destructive" className="absolute bottom-full left-0 mb-2 w-64">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Alert variant="destructive" className="absolute bottom-full left-0 mb-2 w-64">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       );
     }
@@ -146,12 +156,17 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
     return (
       <Card className={cn('transition-all', isDragging && 'ring-2 ring-primary')}>
         <CardContent className="p-6">
-          <div
+          <motion.div
             ref={dropZoneRef}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className="flex flex-col items-center"
+            animate={{
+              boxShadow: isDragging ? '0 0 0 2px rgba(var(--primary), 0.5)' : '0 0 0 0 rgba(var(--primary), 0)',
+              scale: isDragging ? 1.02 : 1,
+            }}
+            transition={{ duration: 0.2 }}
           >
             <input
               type="file"
@@ -159,6 +174,7 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               className="hidden"
               onChange={handleFileSelect}
               accept={acceptedFileTypes.join(',')}
+              data-testid="file-input-for-test"
             />
             <label htmlFor="file-upload" className="cursor-pointer text-center">
               <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
@@ -171,27 +187,52 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               </AlertDescription>
             </label>
 
-            {error && (
-              <Alert variant="destructive" className="mt-4 w-full">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full mt-4"
+                >
+                  <Alert variant="destructive" className="w-full">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {uploadProgress > 0 && uploadProgress < 100 && (
-              <div className="w-full mt-4 space-y-2">
-                <Progress value={uploadProgress} className="h-2 w-full" />
-                <p className="text-xs text-muted-foreground text-center">{uploadProgress}% uploaded</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="w-full mt-4 space-y-2"
+                >
+                  <Progress value={uploadProgress} className="h-2 w-full" />
+                  <p className="text-xs text-muted-foreground text-center">{uploadProgress}% uploaded</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {uploadProgress === 100 && (
-              <div className="flex items-center gap-2 mt-4 text-primary">
-                <CheckCircle className="h-4 w-4" />
-                <span className="text-sm">Upload complete!</span>
-              </div>
-            )}
-          </div>
+            <AnimatePresence>
+              {uploadProgress === 100 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center gap-2 mt-4 text-primary"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-sm">Upload complete!</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </CardContent>
       </Card>
     );

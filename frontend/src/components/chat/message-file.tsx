@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface MessageFileProps {
   message: {
@@ -31,7 +32,12 @@ export default function MessageFile({ message }: MessageFileProps) {
     : 'Unknown size';
 
   return (
-    <div className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}>
+    <motion.div
+      className={cn('flex items-start gap-2', isCurrentUser && 'flex-row-reverse')}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Avatar className="mt-0.5">
         <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${initials}`} alt={message.sender} />
         <AvatarFallback>{initials}</AvatarFallback>
@@ -43,30 +49,32 @@ export default function MessageFile({ message }: MessageFileProps) {
             {formatDistanceToNow(message.timestamp, { addSuffix: true })}
           </span>
         </div>
-        <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-          <CardContent className="p-3">
-            <p className="text-sm mb-2">{message.content}</p>
-            <div
-              className={cn(
-                'flex items-center p-3 rounded-md gap-2',
-                isCurrentUser ? 'bg-primary-foreground/10' : 'bg-background',
-              )}
-            >
-              <FileIcon className="h-8 w-8 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{message.fileName}</p>
-                <p className="text-xs opacity-80">
-                  {formattedSize} • {message.fileType}
-                </p>
+        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} transition={{ duration: 0.2 }}>
+          <Card className={cn('shadow-sm', isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+            <CardContent className="p-3">
+              <p className="text-sm mb-2">{message.content}</p>
+              <div
+                className={cn(
+                  'flex items-center p-3 rounded-md gap-2',
+                  isCurrentUser ? 'bg-primary-foreground/10' : 'bg-background',
+                )}
+              >
+                <FileIcon className="h-8 w-8 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{message.fileName}</p>
+                  <p className="text-xs opacity-80">
+                    {formattedSize} • {message.fileType}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" className="shrink-0">
+                  <Download className="h-4 w-4" />
+                  <span className="sr-only">Download</span>
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <Download className="h-4 w-4" />
-                <span className="sr-only">Download</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
