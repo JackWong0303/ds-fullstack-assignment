@@ -106,6 +106,7 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
         onChange={handleFileChange}
         className="hidden"
         accept="image/*,.pdf,.doc,.docx,.txt"
+        data-testid="file-input-for-test"
       />
     </form>
   );

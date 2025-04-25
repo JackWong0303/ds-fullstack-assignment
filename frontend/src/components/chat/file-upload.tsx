@@ -137,6 +137,7 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               className="hidden"
               onChange={handleFileSelect}
               accept={acceptedFileTypes.join(',')}
+              data-testid="file-input-for-test"
             />
             <label htmlFor="file-upload" className="cursor-pointer text-center">
               <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
