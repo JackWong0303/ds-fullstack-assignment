@@ -5,10 +5,12 @@ import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { validateFile, MAX_FILE_SIZE_MB } from '@/utils/file-utils';
 
-// Define allowed file types to match with the chat-layout component
+// Map extensions to MIME types for the accept attribute
 const ALLOWED_FILE_TYPES = [
   // Images
   'image/jpeg',
@@ -27,8 +29,6 @@ const ALLOWED_FILE_TYPES = [
   'text/xml',
 ];
 
-const DEFAULT_MAX_SIZE_MB = 5;
-
 interface FileUploadProps {
   onFileUpload: (file: File) => void;
   onUploadStateChange?: (isUploading: boolean) => void;
@@ -43,12 +43,11 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       onFileUpload,
       onUploadStateChange,
       children,
-      maxSizeMB = DEFAULT_MAX_SIZE_MB,
+      maxSizeMB = MAX_FILE_SIZE_MB,
       acceptedFileTypes = ALLOWED_FILE_TYPES,
     },
     ref,
   ) => {
-    const [isDragging, setIsDragging] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const internalRef = useRef<HTMLDivElement>(null);
@@ -56,23 +55,14 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
     // Use the forwarded ref if provided, otherwise use our internal ref
     const dropZoneRef = ref || internalRef;
 
-    const handleDragOver = (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(true);
-    };
+    const handleFileValidation = (file: File): boolean => {
+      const validation = validateFile(file);
 
-    const handleDragLeave = () => {
-      setIsDragging(false);
-    };
-
-    const validateFile = (file: File): boolean => {
-      // Check file size
-      if (file.size > maxSizeMB * 1024 * 1024) {
-        setError(`File size exceeds ${maxSizeMB}MB limit`);
+      if (!validation.isValid) {
+        setError(validation.errorMessage ?? 'Invalid file');
         return false;
       }
 
-      // Check file type
       if (!acceptedFileTypes.includes(file.type)) {
         setError('File type not supported');
         return false;
@@ -82,7 +72,7 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       return true;
     };
 
-    const simulateUpload = () => {
+    const simulateUpload = (file: File) => {
       let progress = 0;
       const interval = setInterval(() => {
         progress += 10;
@@ -90,37 +80,21 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
         if (progress >= 100) {
           clearInterval(interval);
           setTimeout(() => {
+            onFileUpload(file);
             if (onUploadStateChange) onUploadStateChange(false);
           }, 500);
         }
       }, 200);
     };
 
-    const handleDrop = (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        const file = e.dataTransfer.files[0];
-
-        if (validateFile(file)) {
-          if (onUploadStateChange) onUploadStateChange(true);
-          setUploadProgress(0);
-          simulateUpload();
-          onFileUpload(file);
-        }
-      }
-    };
-
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
         const file = e.target.files[0];
 
-        if (validateFile(file)) {
+        if (handleFileValidation(file)) {
           if (onUploadStateChange) onUploadStateChange(true);
           setUploadProgress(0);
-          simulateUpload();
-          onFileUpload(file);
+          simulateUpload(file);
         }
       }
     };
@@ -132,7 +106,7 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
 
     if (children) {
       return (
-        <div ref={dropZoneRef} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+        <div ref={dropZoneRef}>
           {children}
           <AnimatePresence>
             {error && (
@@ -154,31 +128,19 @@ const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
     }
 
     return (
-      <Card className={cn('transition-all', isDragging && 'ring-2 ring-primary')}>
+      <Card>
         <CardContent className="p-6">
-          <motion.div
-            ref={dropZoneRef}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className="flex flex-col items-center"
-            animate={{
-              boxShadow: isDragging ? '0 0 0 2px rgba(var(--primary), 0.5)' : '0 0 0 0 rgba(var(--primary), 0)',
-              scale: isDragging ? 1.02 : 1,
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            <input
+          <motion.div ref={dropZoneRef} className="flex flex-col items-center">
+            <Input
               type="file"
               id="file-upload"
               className="hidden"
               onChange={handleFileSelect}
               accept={acceptedFileTypes.join(',')}
-              data-testid="file-input-for-test"
             />
             <label htmlFor="file-upload" className="cursor-pointer text-center">
               <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-              <AlertTitle>Drag and drop a file here, or click to select</AlertTitle>
+              <AlertTitle>Click to select a file</AlertTitle>
               <AlertDescription className="text-xs text-muted-foreground mt-1">
                 Max size: {maxSizeMB}MB
               </AlertDescription>

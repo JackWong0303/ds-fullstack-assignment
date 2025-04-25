@@ -28,7 +28,10 @@ export default function MessageText({ message }: MessageTextProps) {
       transition={{ duration: 0.3 }}
     >
       <Avatar className="mt-0.5">
-        <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${initials}`} alt={message.sender} />
+        <AvatarImage
+          src={message.sender === 'Bot' ? '/bot.svg' : 'https://github.com/shadcn.png'}
+          alt={message.sender}
+        />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col gap-1 max-w-[80%]">

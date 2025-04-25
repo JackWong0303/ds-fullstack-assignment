@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { MessageSquare, Settings, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,230 +13,31 @@ import MessageFile from './message-file';
 import SystemBubble from './system-bubble';
 import ResetChatButton from './reset-chat-button';
 import useAutoScroll from '@/hooks/use-auto-scroll';
-import useChat from '@/hooks/use-chat';
-
-type MessageType = 'text' | 'image' | 'file' | 'system';
-
-interface Message {
-  id: string;
-  type: MessageType;
-  sender: string;
-  content: string;
-  timestamp: Date;
-  imageUrl?: string;
-  imageWidth?: number;
-  imageHeight?: number;
-  imageAlt?: string;
-  fileName?: string;
-  fileType?: string;
-  fileSize?: number;
-}
+import { useMessages } from '@/hooks/use-messages';
+import { useFileUpload } from '@/hooks/use-file-upload';
 
 export default function ChatLayout() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'text',
-      sender: 'Bot',
-      content: 'Hello, how can I help you today?',
-      timestamp: new Date(Date.now()),
-    },
-  ]);
+  const {
+    messages,
+    loading,
+    error,
+    sendMessage,
+    createMessage,
+    addMessage,
+    createErrorMessage,
+    resetMessages,
+    sendChatRequest,
+  } = useMessages();
+
+  const { handleFileUpload } = useFileUpload({
+    addMessage,
+    createMessage,
+    createErrorMessage,
+    sendChatRequest,
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useAutoScroll(messagesEndRef, messages);
-  const { sendChatRequest, loading, error } = useChat();
-
-  const handleSendMessage = async (content: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'text',
-      sender: 'You',
-      content,
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, userMessage]);
-
-    try {
-      const chatResponse = await sendChatRequest({
-        type: 'text',
-        message: content,
-      });
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'text',
-        sender: 'Bot',
-        content: chatResponse.response,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, botMessage]);
-    } catch (err) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'system',
-        sender: 'System',
-        content: 'Failed to send message. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    // Validate file size (max 5MB)
-    const MAX_SIZE_MB = 5;
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        type: 'system',
-        sender: 'System',
-        content: `File too large. Maximum size is ${MAX_SIZE_MB}MB.`,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      return;
-    }
-
-    // Validate file extension
-    const allowedExtensions = [
-      // Images
-      '.jpg',
-      '.jpeg',
-      '.png',
-      '.gif',
-      // Documents
-      '.pdf',
-      '.doc',
-      '.docx',
-      '.txt',
-      // Data files
-      '.csv',
-      '.json',
-      '.xml',
-    ];
-
-    const fileExtension = `.${file.name.split('.').pop()?.toLowerCase()}`;
-    if (!allowedExtensions.includes(fileExtension)) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        type: 'system',
-        sender: 'System',
-        content: `File type not allowed. Allowed types: ${allowedExtensions.join(', ')}`,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      return;
-    }
-
-    const isImage = file.type.startsWith('image/');
-    let imageWidth = 400;
-    let imageHeight = 300;
-
-    if (isImage) {
-      const objectUrl = URL.createObjectURL(file);
-
-      try {
-        const dimensions = await getImageDimensions(objectUrl);
-        imageWidth = dimensions.width;
-        imageHeight = dimensions.height;
-      } catch (err) {
-        console.error('Error getting image dimensions:', err);
-      }
-    }
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: isImage ? 'image' : 'file',
-      sender: 'You',
-      content: isImage ? 'Sent an image' : `Sent a file: ${file.name}`,
-      timestamp: new Date(),
-      ...(isImage
-        ? {
-            imageUrl: URL.createObjectURL(file),
-            imageWidth,
-            imageHeight,
-            imageAlt: file.name,
-          }
-        : {
-            fileName: file.name,
-            fileType: file.type,
-            fileSize: file.size,
-          }),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-
-    try {
-      const chatResponse = await sendChatRequest({
-        type: isImage ? 'image' : 'file',
-        fileInfo: {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          width: isImage ? imageWidth : undefined,
-          height: isImage ? imageHeight : undefined,
-        },
-      });
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'text',
-        sender: 'Bot',
-        content: chatResponse.response,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, botMessage]);
-    } catch (err) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'system',
-        sender: 'System',
-        content: 'Failed to process file. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-  };
-
-  const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 600;
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-
-        resolve({ width, height });
-        URL.revokeObjectURL(url);
-      };
-      img.onerror = () => {
-        reject(new Error('Failed to load image'));
-        URL.revokeObjectURL(url);
-      };
-      img.src = url;
-    });
-  };
-
-  const handleReset = () => {
-    setMessages([
-      {
-        id: '1',
-        type: 'text',
-        sender: 'Bot',
-        content: 'Hello, how can I help you today?',
-        timestamp: new Date(),
-      },
-    ]);
-  };
 
   return (
     <Card className="flex flex-col h-full max-w-4xl mx-auto shadow-lg rounded-lg overflow-hidden">
@@ -246,11 +47,7 @@ export default function ChatLayout() {
           Chat
         </CardTitle>
         <div className="flex items-center gap-2">
-          <ResetChatButton onReset={handleReset} />
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
-          </Button>
+          <ResetChatButton onReset={resetMessages} />
         </div>
       </CardHeader>
       <Separator />
@@ -282,7 +79,7 @@ export default function ChatLayout() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" role="status" data-testid="loading-spinner" />
           </div>
         )}
-        <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} />
+        <ChatInput onSendMessage={sendMessage} onFileUpload={handleFileUpload} />
       </CardFooter>
     </Card>
   );

@@ -1,24 +1,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-
-export type ChatRequestType = 'text' | 'file' | 'image';
-
-export interface ChatRequest {
-  type: ChatRequestType;
-  message?: string;
-  fileInfo?: {
-    name?: string;
-    type?: string;
-    size?: number;
-    width?: number;
-    height?: number;
-  };
-}
-
-export interface ChatResponse {
-  response: string;
-}
+import { ChatRequest, ChatResponse } from '@/types/chat';
 
 const chat = async (request: ChatRequest): Promise<ChatResponse> => {
   const response = await axios.post<ChatResponse>('/api/chat', request);

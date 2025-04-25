@@ -100,13 +100,12 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
         </Tooltip>
       </TooltipProvider>
 
-      <input
+      <Input
         ref={fileInputRef}
         type="file"
         onChange={handleFileChange}
         className="hidden"
         accept="image/*,.pdf,.doc,.docx,.txt"
-        data-testid="file-input-for-test"
       />
     </form>
   );
