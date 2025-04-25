@@ -31,9 +31,19 @@ This full-stack chat application consists of a React frontend and Python backend
 
 ### Prerequisites
 
-- Node.js 20+ and npm
-- Python 3.11+
-- pip
+Before you begin, ensure you have the following software installed on your system. It's recommended to use the specified versions to ensure compatibility.
+
+- **Git:** Required for cloning the repository.
+  - _Installation Guide:_ [https://git-scm.com/book/en/v2/Getting-Started-Installing-Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- **Docker and Docker Compose:** Required for building and running the application using containers. The latest stable version is generally recommended.
+  - _Installation Guide:_ [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
+  - _Docker Compose Installation:_ Often included with Docker Desktop. See [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+- **Node.js:** Required for the frontend development environment.
+  - _Recommended Version:_ v22.14.0 (as specified in `.nvmrc`)
+  - _Installation Guide:_ We recommend using a version manager like [nvm](https://github.com/nvm-sh/nvm) to easily switch Node.js versions. Once nvm is installed, you can run `nvm install` in the project root directory to install and use the correct version. Alternatively, download from [https://nodejs.org/](https://nodejs.org/).
+- **Python:** Required for the backend development environment.
+  - _Recommended Version:_ 3.11.x (as specified in `backend/Dockerfile`)
+  - _Installation Guide:_ [https://www.python.org/downloads/](https://www.python.org/downloads/). We recommend using a tool like `pyenv` or managing environments with `venv`.
 
 ### Frontend Commands
 
@@ -62,7 +72,7 @@ cd backend
 
 # Create virtual environment (recommended)
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
